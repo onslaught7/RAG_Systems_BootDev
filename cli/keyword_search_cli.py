@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
-
 import argparse # To parse command-line arguments
 from typing import List
 import json
 import os
 
+
 def search_movies(query: str) -> List[str]:
+    """Search movies by title containing the query string."""
     try:    
         with open("./data/movies.json", "r") as f:
             movies_dict = json.load(f)
