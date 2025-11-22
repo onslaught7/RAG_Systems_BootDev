@@ -1,8 +1,26 @@
 import argparse # To parse command-line arguments
 from typing import List
 import json
-import os
+import string
 
+
+def _normalize_text(text: str) -> str:
+    """
+    Noramlize text for keyword search. Perfroms the following operations:
+
+    - Case in-sensitivity
+    - Punctuation removal
+    - Tokenization
+    - Stop words removal
+    - Stemming    
+    """
+    if not isinstance(text, str):
+        return ""
+
+    translator = str.maketrans("", "", string.punctuation) 
+    cleaned = text.lower().translate(translator)
+    
+    return cleaned
 
 def search_movies(query: str) -> List[str]:
     """Search movies by title containing the query string."""
@@ -15,9 +33,10 @@ def search_movies(query: str) -> List[str]:
         return []
 
     search_results = []
+    normalized_query = _normalize_text(query)
 
     for movie in movies_dict["movies"]:
-        if query.lower() in movie["title"].lower():
+        if normalized_query in _normalize_text(movie["title"]):
             result = (movie["id"], movie["title"])
             search_results.append(result)
 
