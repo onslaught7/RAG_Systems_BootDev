@@ -16,10 +16,8 @@ def _normalize_text(text: str) -> str:
     """
     if not isinstance(text, str):
         return ""
-
     translator = str.maketrans("", "", string.punctuation) 
-    cleaned = text.lower().translate(translator)
-    
+    cleaned = text.lower().translate(translator).split()
     return cleaned
 
 def search_movies(query: str) -> List[str]:
@@ -34,11 +32,17 @@ def search_movies(query: str) -> List[str]:
 
     search_results = []
     normalized_query = _normalize_text(query)
+    if not normalized_query:
+        return []
 
-    for movie in movies_dict["movies"]:
-        if normalized_query in _normalize_text(movie["title"]):
-            result = (movie["id"], movie["title"])
-            search_results.append(result)
+    def _partial_match(query_tokens: List[str], title_tokens: List[str]) -> bool:
+        return any(token in title_token for token in query_tokens for title_token in title_tokens)
+
+    # Handle case where "movies" key might be missing or not a list
+    for movie in movies_dict.get("movies", []):
+        movie_title_token = _normalize_text(movie.get("title", ""))
+        if _partial_match(normalized_query, movie_title_token):
+            search_results.append((movie["id"], movie["title"]))
 
     # Order by ascending order of IDs and truncate to top 5 results
     search_results.sort(key=lambda x: x[0])
