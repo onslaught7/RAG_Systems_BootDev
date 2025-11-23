@@ -60,3 +60,16 @@ class InvertedIndex:
                 pickle.dump(self.docmap, f)
         except Exception as e:
             print(f"An error occurred while saving the index: {e}")
+
+
+    def load(self) -> None:
+        """Load the index and the docmap attributes from the disk."""
+        try:
+            with open("./cache/index.pkl", "rb") as f:
+                self.index = pickle.load(f)
+            with open("./cache/docmap.pkl", "rb") as f:
+                self.docmap = pickle.load(f)
+        except FileNotFoundError:
+            print("Error: Cache files not found. Please build the index first.")
+        except Exception as e:  
+            print(f"An error occurred while loading the index: {e}")

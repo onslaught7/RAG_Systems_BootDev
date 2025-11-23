@@ -10,37 +10,30 @@ from typing import List
 import json
 
 
-
 def search_movies(query: str) -> List[str]:
     """Search movies by title containing the query string."""
-    try:    
-        with open("./data/movies.json", "r") as f:
-            movies_dict = json.load(f)
-            
+    idx = InvertedIndex()
+    try:
+        idx.load()
     except FileNotFoundError:
-        print("Error: ./data/movies.json not found.")
+        print("Error: Inverted index not found. Please build the index first using the 'build' command.")
         return []
 
-    search_results = []
     normalized_query = _normalize_text(query)
     if not normalized_query:
         return []
+    
+    matching_doc_ids = set()    
+    for token in normalized_query[:5]:
+        doc_ids = idx.get_documents(token)
+        matching_doc_ids.update(doc_ids)
 
-    def _partial_match(query_tokens: List[str], title_tokens: List[str]) -> bool:
-        """Check if any token in query_tokens partially matches any token in title_tokens."""
-        return any(token in title_token for token in query_tokens for title_token in title_tokens)
+    results = []
+    for doc_id in sorted(matching_doc_ids):
+        if doc_id in idx.docmap:
+            results.append(idx.docmap[doc_id]["title"])
 
-    # Handle case where "movies" key might be missing or not a list .get() instead of direct access
-    for movie in movies_dict.get("movies", []):
-        movie_title_token = _normalize_text(movie.get("title", ""))
-        if _partial_match(normalized_query, movie_title_token):
-            search_results.append((movie["id"], movie["title"]))
-
-    # Order by ascending order of IDs and truncate to top 5 results
-    search_results.sort(key=lambda x: x[0])
-    top_results = search_results[:5]
-
-    return [title for _, title in top_results]
+    return  results[:5]
 
 
 def main() -> None:
@@ -58,7 +51,6 @@ def main() -> None:
             # print the search query here
             print(f"Searching for: {args.query}")
             results = search_movies(args.query)
-
             if results:
                 for i, result in enumerate(results, start=1):
                     print(f"{i}. {result}")
@@ -67,9 +59,6 @@ def main() -> None:
         case "build":
             idx = InvertedIndex()
             idx.build()
-            docs = idx.get_documents('merida')
-            if docs:
-                print(f"First document for token 'merida' = {docs[0]}")
         case _:
             parser.print_help()
 
