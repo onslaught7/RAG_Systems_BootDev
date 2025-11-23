@@ -11,3 +11,7 @@ wheels/
 
 # data files
 data
+
+# debugging files
+.ruff_cache
+.mypy_cache

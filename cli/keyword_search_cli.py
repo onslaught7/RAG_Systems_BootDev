@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.text_processing import _normalize_text
+from src.inverted_index import InvertedIndex
 import argparse # To parse command-line arguments
 from typing import List
 import json
@@ -48,6 +49,7 @@ def main() -> None:
 
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
+    build_parser = subparsers.add_parser("build", help="Build inverted index")
 
     args = parser.parse_args()
 
@@ -62,6 +64,12 @@ def main() -> None:
                     print(f"{i}. {result}")
             else:
                 print("No results found.")
+        case "build":
+            idx = InvertedIndex()
+            idx.build()
+            docs = idx.get_documents('merida')
+            if docs:
+                print(f"First document for token 'merida' = {docs[0]}")
         case _:
             parser.print_help()
 
