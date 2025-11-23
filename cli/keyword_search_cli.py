@@ -1,42 +1,13 @@
-from functools import lru_cache
+import sys
+from pathlib import Path
+# Add parent directory to path so we can import from src/
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.text_processing import _normalize_text
 import argparse # To parse command-line arguments
 from typing import List
 import json
-import string
 
-
-@lru_cache(maxsize=1)
-def _load_stop_words() -> set:
-    """Load stop words from a predefioned txt file and cache the result."""
-    try:
-        with open("./data/stopwords.txt", "r") as f:
-            stop_words = f.read().splitlines()
-        return set(stop_words)
-    except FileNotFoundError:
-        print("Error: ./data/stopwords.txt not found.")
-        return set()
-
-
-def _normalize_text(text: str) -> List[str]:
-    """
-    Noramlize text for keyword search. Perfroms the following operations:
-
-    - Case in-sensitivity
-    - Punctuation removal
-    - Tokenization
-    - Stop words removal
-    - Stemming    
-    """
-    if not isinstance(text, str):
-        return []
-    translator = str.maketrans("", "", string.punctuation) 
-    cleaned = text.lower().translate(translator).split()
-
-    stop_words = _load_stop_words()
-    # Remove stop words
-    cleaned = [word for word in cleaned if word not in stop_words]
-
-    return cleaned
 
 
 def search_movies(query: str) -> List[str]:
