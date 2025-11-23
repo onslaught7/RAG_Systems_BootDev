@@ -1,10 +1,23 @@
+from functools import lru_cache
 import argparse # To parse command-line arguments
 from typing import List
 import json
 import string
 
 
-def _normalize_text(text: str) -> str:
+@lru_cache(maxsize=1)
+def _load_stop_words() -> set:
+    """Load stop words from a predefioned txt file and cache the result."""
+    try:
+        with open("./data/stopwords.txt", "r") as f:
+            stop_words = f.read().splitlines()
+        return set(stop_words)
+    except FileNotFoundError:
+        print("Error: ./data/stopwords.txt not found.")
+        return set()
+
+
+def _normalize_text(text: str) -> List[str]:
     """
     Noramlize text for keyword search. Perfroms the following operations:
 
@@ -15,10 +28,16 @@ def _normalize_text(text: str) -> str:
     - Stemming    
     """
     if not isinstance(text, str):
-        return ""
+        return []
     translator = str.maketrans("", "", string.punctuation) 
     cleaned = text.lower().translate(translator).split()
+
+    stop_words = _load_stop_words()
+    # Remove stop words
+    cleaned = [word for word in cleaned if word not in stop_words]
+
     return cleaned
+
 
 def search_movies(query: str) -> List[str]:
     """Search movies by title containing the query string."""
@@ -36,9 +55,10 @@ def search_movies(query: str) -> List[str]:
         return []
 
     def _partial_match(query_tokens: List[str], title_tokens: List[str]) -> bool:
+        """Check if any token in query_tokens partially matches any token in title_tokens."""
         return any(token in title_token for token in query_tokens for title_token in title_tokens)
 
-    # Handle case where "movies" key might be missing or not a list
+    # Handle case where "movies" key might be missing or not a list .get() instead of direct access
     for movie in movies_dict.get("movies", []):
         movie_title_token = _normalize_text(movie.get("title", ""))
         if _partial_match(normalized_query, movie_title_token):
