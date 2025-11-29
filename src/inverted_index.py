@@ -1,5 +1,6 @@
 from typing import Dict, Set, List
 from src.text_processing import _normalize_text
+from collections import Counter
 import json
 import pickle
 import os
@@ -9,15 +10,20 @@ class InvertedIndex:
     def __init__(self):
         self.index: Dict[str, Set[int]] = {}
         self.docmap: Dict[int, Dict] = {}
+        self.term_frequencies: Dict[int, Counter] = {}
 
 
     def _add_document(self, doc_id: int, text: str) -> None:
         """Tokenize the input text and add each token to the index with the document ID."""
         tokens = _normalize_text(text)
+        token_counts = Counter(tokens)
+
         for token in tokens:
             if token not in self.index:
                 self.index[token] = set()
             self.index[token].add(doc_id)
+
+        self.term_frequencies[doc_id] = token_counts
 
 
     def get_documents(self, term: str) -> List[int]:
@@ -58,6 +64,8 @@ class InvertedIndex:
                 pickle.dump(self.index, f)
             with open("./cache/docmap.pkl", "wb") as f:
                 pickle.dump(self.docmap, f)
+            with open("./cache/term_frequencies.pkl", "wb") as f:
+                pickle.dump(self.term_frequencies, f)
         except Exception as e:
             print(f"An error occurred while saving the index: {e}")
 
@@ -69,7 +77,28 @@ class InvertedIndex:
                 self.index = pickle.load(f)
             with open("./cache/docmap.pkl", "rb") as f:
                 self.docmap = pickle.load(f)
+            with open("./cache/term_frequencies.pkl", "rb") as f:
+                self.term_frequencies = pickle.load(f)
         except FileNotFoundError:
             print("Error: Cache files not found. Please build the index first.")
         except Exception as e:  
             print(f"An error occurred while loading the index: {e}")
+
+
+    def get_tf(self, doc_id: str, term: str) -> int:
+        """Return the times the token appears in the document with the given id"""
+        try:
+            tokenized_term = _normalize_text(term)
+
+            if len(tokenized_term) == 0:
+                return 0
+            if len(tokenized_term) > 1:
+                raise ValueError("Term must be a single token")
+
+            if term not in self.term_frequencies[doc_id]:
+                return 0
+
+            return self.term_frequencies[doc_id][term]
+        except Exception as e:
+            print(f"An error occurred while getting the term frequency: {e}")
+            return 0

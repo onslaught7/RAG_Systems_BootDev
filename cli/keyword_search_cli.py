@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+
+from nltk import HeldoutProbDist
 # Add parent directory to path so we can import from src/
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -43,6 +45,9 @@ def main() -> None:
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
     build_parser = subparsers.add_parser("build", help="Build inverted index")
+    tf_parser = subparsers.add_parser("tf", help="Get the term frequency")
+    tf_parser.add_argument("doc_id", type=int, help="The document id")
+    tf_parser.add_argument("term", type=str, help="The term whose frequency is to be found")
 
     args = parser.parse_args()
 
@@ -59,6 +64,14 @@ def main() -> None:
         case "build":
             idx = InvertedIndex()
             idx.build()
+        case "tf":
+            idx = InvertedIndex()
+            idx.load()
+            tf = idx.get_tf(args.doc_id, args.term)
+            if tf > 0:
+                print(tf)
+            else: 
+                print(0)
         case _:
             parser.print_help()
 
