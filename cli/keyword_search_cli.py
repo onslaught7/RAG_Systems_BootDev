@@ -54,6 +54,10 @@ def main() -> None:
     idf_parser = subparsers.add_parser("idf", help="Get the inverse document frequency")
     idf_parser.add_argument("term", type=str, help="The term whose inverse document frequency is to be found")
 
+    tfidf_parser = subparsers.add_parser("tfidf", help="Get the TF-IDF score.")
+    tfidf_parser.add_argument("doc_id", type=int, help="The document id")
+    tfidf_parser.add_argument("term", type=str, help="The term whose TF-IDF is to be found")
+
     args = parser.parse_args()
 
     match args.command:
@@ -82,6 +86,11 @@ def main() -> None:
             idx.load()
             idf = idx.get_idf(args.term)
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+        case "tfidf":
+            idx = InvertedIndex()
+            idx.load()
+            tf_idf = idx.get_tfidf(args.doc_id, args.term)
+            print(f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
         case _:
             parser.print_help()
 

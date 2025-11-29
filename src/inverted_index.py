@@ -1,4 +1,5 @@
 import math
+from sys import float_info
 from typing import Dict, Set, List
 from src.text_processing import _normalize_text
 from collections import Counter
@@ -125,3 +126,11 @@ class InvertedIndex:
         except Exception as e:
             print(f"An error occurred while getting the Inverse Document Frequency: {e}")
             return 0
+
+
+    def get_tfidf(self, doc_id: int, term: str) -> float:
+        """Return the TF-IDF score of the term in the doc_id"""
+        tf = self.get_tf(doc_id, term)
+        idf = self.get_idf(term)
+
+        return tf * idf
