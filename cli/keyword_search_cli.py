@@ -44,10 +44,15 @@ def main() -> None:
 
     search_parser = subparsers.add_parser("search", help="Search movies using BM25")
     search_parser.add_argument("query", type=str, help="Search query")
+
     build_parser = subparsers.add_parser("build", help="Build inverted index")
+
     tf_parser = subparsers.add_parser("tf", help="Get the term frequency")
     tf_parser.add_argument("doc_id", type=int, help="The document id")
     tf_parser.add_argument("term", type=str, help="The term whose frequency is to be found")
+
+    idf_parser = subparsers.add_parser("idf", help="Get the inverse document frequency")
+    idf_parser.add_argument("term", type=str, help="The term whose inverse document frequency is to be found")
 
     args = parser.parse_args()
 
@@ -72,6 +77,11 @@ def main() -> None:
                 print(tf)
             else: 
                 print(0)
+        case "idf":
+            idx = InvertedIndex()
+            idx.load()
+            idf = idx.get_idf(args.term)
+            print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
         case _:
             parser.print_help()
 

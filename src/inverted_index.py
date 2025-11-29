@@ -1,3 +1,4 @@
+import math
 from typing import Dict, Set, List
 from src.text_processing import _normalize_text
 from collections import Counter
@@ -101,4 +102,26 @@ class InvertedIndex:
             return self.term_frequencies[doc_id][term]
         except Exception as e:
             print(f"An error occurred while getting the term frequency: {e}")
+            return 0
+
+    
+    def get_idf(self, term: str) -> float:
+        """Return the Inverted Term Frequency of the term"""
+        try:
+            tokenized_term = _normalize_text(term)
+            
+            if len(tokenized_term) == 0:
+                return 0
+            if len(tokenized_term) > 1:
+                raise ValueError("Term must be a single token")
+
+            token = tokenized_term[0]
+
+            total_docs = len(self.docmap)
+            doc_id_set = self.index.get(token, set())
+            docs_containing_term = len(doc_id_set)
+            
+            return math.log((total_docs + 1) / (docs_containing_term + 1))
+        except Exception as e:
+            print(f"An error occurred while getting the Inverse Document Frequency: {e}")
             return 0
