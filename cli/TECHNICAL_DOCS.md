@@ -216,19 +216,6 @@ The CLI handles various error scenarios:
 - **Result Capping**: Returns maximum 5 results to keep response times reasonable
 - **Set Operations**: Uses set union for efficient document ID aggregation
 
-## Future Enhancements
-
-Potential improvements could include:
-
-- **BM25 Ranking**: Implement BM25 algorithm (currently mentioned in help text but not implemented)
-- **Output Formatting**: Add options for JSON, CSV, or other output formats
-- **Verbose Mode**: Add `--verbose` flag for detailed search information
-- **Query Options**: Support for boolean operators (AND, OR, NOT)
-- **Pagination**: Support for retrieving more than 5 results
-- **Interactive Mode**: REPL-style interface for multiple searches
-- **Configuration**: Support for custom data paths, cache locations, etc.
-- **Progress Indicators**: Show progress during index building for large datasets
-
 ## File Structure
 
 ```
