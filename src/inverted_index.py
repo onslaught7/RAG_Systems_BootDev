@@ -134,3 +134,21 @@ class InvertedIndex:
         idf = self.get_idf(term)
 
         return tf * idf
+    
+    def get_bm25_idf(self, term: str) -> float:
+        """Return the Inverse Document Frrquency of the term using BM25 algorithm"""
+        tokenized_term = _normalize_text(term)
+
+        if len(tokenized_term) == 0:
+                return 0
+        if len(tokenized_term) > 1:
+            raise ValueError("Term must be a single token") 
+        
+        token = tokenized_term[0]
+
+        total_docs = len(self.docmap)
+        doc_id_set = self.index.get(token, set())
+        docs_containing_term = len(doc_id_set)
+        docs_not_containing_term = total_docs - docs_containing_term
+
+        return math.log((docs_not_containing_term + 0.5) / (docs_containing_term + 0.5) + 1)

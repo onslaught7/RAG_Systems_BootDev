@@ -49,14 +49,17 @@ def main() -> None:
 
     tf_parser = subparsers.add_parser("tf", help="Get the term frequency")
     tf_parser.add_argument("doc_id", type=int, help="The document id")
-    tf_parser.add_argument("term", type=str, help="The term whose frequency is to be found")
+    tf_parser.add_argument("term", type=str, help="Term to get TF for")
 
     idf_parser = subparsers.add_parser("idf", help="Get the inverse document frequency")
-    idf_parser.add_argument("term", type=str, help="The term whose inverse document frequency is to be found")
+    idf_parser.add_argument("term", type=str, help="Term to get IDF for")
 
     tfidf_parser = subparsers.add_parser("tfidf", help="Get the TF-IDF score.")
     tfidf_parser.add_argument("doc_id", type=int, help="The document id")
-    tfidf_parser.add_argument("term", type=str, help="The term whose TF-IDF is to be found")
+    tfidf_parser.add_argument("term", type=str, help="Term to get TF-IDF score for")
+
+    bm25_idf_parser = subparsers.add_parser("bm25idf", help="Get BM25 IDF score for a given term")
+    bm25_idf_parser.add_argument("term", type=str, help="Term to get BM25 IDF score for")
 
     args = parser.parse_args()
 
@@ -91,6 +94,12 @@ def main() -> None:
             idx.load()
             tf_idf = idx.get_tfidf(args.doc_id, args.term)
             print(f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tf_idf:.2f}")
+        case "bm25idf":
+            idx = InvertedIndex()
+            idx.load()
+            print(f"term:{args.term}")
+            bm25idf = idx.get_bm25_idf(args.term)
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
         case _:
             parser.print_help()
 
