@@ -3,6 +3,7 @@ from sys import float_info
 from typing import Dict, Set, List
 from src.text_processing import _normalize_text
 from collections import Counter
+from constants.constants import BM25_K1
 import json
 import pickle
 import os
@@ -97,10 +98,11 @@ class InvertedIndex:
             if len(tokenized_term) > 1:
                 raise ValueError("Term must be a single token")
 
-            if term not in self.term_frequencies[doc_id]:
+            token = tokenized_term[0]
+            if token not in self.term_frequencies[doc_id]:
                 return 0
 
-            return self.term_frequencies[doc_id][term]
+            return self.term_frequencies[doc_id][token]
         except Exception as e:
             print(f"An error occurred while getting the term frequency: {e}")
             return 0
@@ -130,25 +132,42 @@ class InvertedIndex:
 
     def get_tfidf(self, doc_id: int, term: str) -> float:
         """Return the TF-IDF score of the term in the doc_id"""
-        tf = self.get_tf(doc_id, term)
-        idf = self.get_idf(term)
-
-        return tf * idf
+        try:
+            tf = self.get_tf(doc_id, term)
+            idf = self.get_idf(term)
+            return tf * idf
+        except Exception as e:
+            print(f"An error occurred while calculating TF-IDF: {e}")
+            return 0
     
     def get_bm25_idf(self, term: str) -> float:
         """Return the Inverse Document Frrquency of the term using BM25 algorithm"""
-        tokenized_term = _normalize_text(term)
+        try:
+            tokenized_term = _normalize_text(term)
 
-        if len(tokenized_term) == 0:
-                return 0
-        if len(tokenized_term) > 1:
-            raise ValueError("Term must be a single token") 
-        
-        token = tokenized_term[0]
+            if len(tokenized_term) == 0:
+                    return 0
+            if len(tokenized_term) > 1:
+                raise ValueError("Term must be a single token") 
+            
+            token = tokenized_term[0]
 
-        total_docs = len(self.docmap)
-        doc_id_set = self.index.get(token, set())
-        docs_containing_term = len(doc_id_set)
-        docs_not_containing_term = total_docs - docs_containing_term
+            total_docs = len(self.docmap)
+            doc_id_set = self.index.get(token, set())
+            docs_containing_term = len(doc_id_set)
+            docs_not_containing_term = total_docs - docs_containing_term
 
-        return math.log((docs_not_containing_term + 0.5) / (docs_containing_term + 0.5) + 1)
+            return math.log((docs_not_containing_term + 0.5) / (docs_containing_term + 0.5) + 1)
+        except Exception as e:
+            print(f"An error occurred while getting the BM25 Inverse Document Frequency: {e}")
+            return 0
+    
+    def get_bm25_tf(self, doc_id, term, k1=BM25_K1) -> float:
+        """Return the BM25 term frequency for a given term in a document."""
+        try:
+            tf = self.get_tf(doc_id, term)
+
+            return (tf * (k1 + 1)) / (tf + k1)
+        except Exception as e:
+            print(f"An error occurred while getting the BM25 term frequency: {e}")
+            return 0
