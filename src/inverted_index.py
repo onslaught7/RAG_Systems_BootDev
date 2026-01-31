@@ -3,7 +3,7 @@ from sys import float_info
 from typing import Dict, Set, List
 from src.text_processing import _normalize_text
 from collections import Counter
-from constants.constants import BM25_K1
+from constants.constants import BM25_K1, BM25_B
 import json
 import pickle
 import os
@@ -14,6 +14,7 @@ class InvertedIndex:
         self.index: Dict[str, Set[int]] = {}
         self.docmap: Dict[int, Dict] = {}
         self.term_frequencies: Dict[int, Counter] = {}
+        self.doc_lengths: Dict[int, int] = {}
 
 
     def _add_document(self, doc_id: int, text: str) -> None:
@@ -27,6 +28,7 @@ class InvertedIndex:
             self.index[token].add(doc_id)
 
         self.term_frequencies[doc_id] = token_counts
+        self.doc_lengths[doc_id] = len(tokens)
 
 
     def get_documents(self, term: str) -> List[int]:
@@ -69,6 +71,8 @@ class InvertedIndex:
                 pickle.dump(self.docmap, f)
             with open("./cache/term_frequencies.pkl", "wb") as f:
                 pickle.dump(self.term_frequencies, f)
+            with open("./cache/doc_lengths.pkl", "wb") as f:
+                pickle.dump(self.doc_lengths, f)
         except Exception as e:
             print(f"An error occurred while saving the index: {e}")
 
@@ -82,6 +86,8 @@ class InvertedIndex:
                 self.docmap = pickle.load(f)
             with open("./cache/term_frequencies.pkl", "rb") as f:
                 self.term_frequencies = pickle.load(f)
+            with open("./cache/doc_lengths.pkl", "rb") as f:
+                self.doc_lengths = pickle.load(f)
         except FileNotFoundError:
             print("Error: Cache files not found. Please build the index first.")
         except Exception as e:  
@@ -162,12 +168,35 @@ class InvertedIndex:
             print(f"An error occurred while getting the BM25 Inverse Document Frequency: {e}")
             return 0
     
-    def get_bm25_tf(self, doc_id, term, k1=BM25_K1) -> float:
+    def get_bm25_tf(self, doc_id, term, k1=BM25_K1, b=BM25_B) -> float:
         """Return the BM25 term frequency for a given term in a document."""
         try:
             tf = self.get_tf(doc_id, term)
-
-            return (tf * (k1 + 1)) / (tf + k1)
+            avg_dl = self._get_avg_doc_length()
+        
+            if avg_dl == 0:
+                return 0.0
+            
+            current_doc_length = self.doc_lengths.get(doc_id, 0)
+            length_norm = 1 - b + b * (current_doc_length / avg_dl)
+            
+            return (tf * (k1 + 1)) / (tf + k1 * length_norm)
         except Exception as e:
             print(f"An error occurred while getting the BM25 term frequency: {e}")
             return 0
+        
+
+    def _get_avg_doc_length(self) -> float:
+        """Calculate and return the average length accross all documents."""
+        try:
+            total_docs = len(self.doc_lengths)
+            if total_docs == 0:
+                return 0.0
+            
+            total_length = sum(self.doc_lengths.values())
+
+            return total_length / total_docs
+                
+        except Exception as e:
+            print(f"Error getting average doc length")
+            return 0.0
