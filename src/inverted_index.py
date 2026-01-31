@@ -179,7 +179,7 @@ class InvertedIndex:
             
             current_doc_length = self.doc_lengths.get(doc_id, 0)
             length_norm = 1 - b + b * (current_doc_length / avg_dl)
-            
+
             return (tf * (k1 + 1)) / (tf + k1 * length_norm)
         except Exception as e:
             print(f"An error occurred while getting the BM25 term frequency: {e}")
@@ -200,3 +200,33 @@ class InvertedIndex:
         except Exception as e:
             print(f"Error getting average doc length")
             return 0.0
+        
+    
+    def bm25(self, doc_id, term) -> float:
+        """Get the BM25 score from the get_bm25_tf and get_bm25_idf components."""
+        return self.get_bm25_tf(doc_id, term) * self.get_bm25_idf(term)
+    
+
+    def bm25_search(self, query, limit):
+        """Search using the enhanced search algorithm okapi BM25"""
+        tokenized_query = _normalize_text(query)
+        scores = {}
+
+        for query_token in tokenized_query:
+            doc_ids = self.get_documents(query_token)
+
+            for doc_id in doc_ids:
+                if doc_id not in scores:
+                    scores[doc_id] = 0.0
+
+                scores[doc_id] += self.bm25(doc_id, query_token)
+            
+        ranked_docs = sorted(
+            scores.items(),
+            key = lambda x: x[1],
+            reverse=True
+        )
+
+        for rank, (doc_id, score) in enumerate(ranked_docs[:limit], start=1):
+            title = self.docmap.get(doc_id, {}).get("title", "")
+            print(f"{rank}. ({doc_id}) {title} - Score: {score:.2f}")
