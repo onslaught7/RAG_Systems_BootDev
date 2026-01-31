@@ -9,7 +9,7 @@ stemmer = PorterStemmer()
 
 @lru_cache(maxsize=1)
 def _load_stop_words() -> set:
-    """Load stop words from a predefioned txt file and cache the result."""
+    """Load stop words from a predefined txt file and cache the result."""
     try:
         with open("./data/stopwords.txt", "r") as f:
             stop_words = f.read().splitlines()
