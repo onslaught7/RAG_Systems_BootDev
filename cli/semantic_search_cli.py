@@ -1,5 +1,5 @@
 import argparse
-from lib.semantic_search import verify_model
+from lib.semantic_search import verify_model, embed_text
 
 
 def main():
@@ -8,6 +8,9 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     verify_parser = subparsers.add_parser("verify", help="Get model and max sequence length.")
+
+    search_parser = subparsers.add_parser("embed_text", help="Perform vector embedding on the input text.")
+    search_parser.add_argument("embed_text", type=str, help="Get embedding for the text.")
     
     args = parser.parse_args()
 
@@ -15,6 +18,8 @@ def main():
     match args.command:
         case "verify":
             verify_model()
+        case "embed_text":
+            embed_text(args.embed_text)
         case _:
             parser.print_help()
 
