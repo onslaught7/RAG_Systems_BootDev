@@ -1,5 +1,5 @@
 import argparse
-from lib.semantic_search import verify_model, embed_text, verify_embeddings
+from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text
 
 
 def main():
@@ -13,6 +13,9 @@ def main():
     search_parser.add_argument("embed_text", type=str, help="Get embedding for the text.")
 
     search_parser = subparsers.add_parser("verify_embeddings", help="Verify whether document has been embedded and create if hasn't.")
+
+    search_parser = subparsers.add_parser("embedquery", help="Embedd query text")
+    search_parser.add_argument("query", type=str, help="Embed query text.")
     
     args = parser.parse_args()
 
@@ -24,6 +27,8 @@ def main():
             embed_text(args.embed_text)
         case "verify_embeddings":
             verify_embeddings()
+        case "embedquery":
+            embed_query_text(args.query)
         case _:
             parser.print_help()
 
