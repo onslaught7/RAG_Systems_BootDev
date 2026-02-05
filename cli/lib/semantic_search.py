@@ -33,6 +33,17 @@ def embed_query_text(query):
     print(f"Shape: {embedding.shape}")
     
 
+def cosine_similarity(vec1, vec2) -> float:
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+
+    return dot_product / (norm1 * norm2)
+
+
 class SemanticSearch:
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -84,6 +95,32 @@ class SemanticSearch:
         text_embedded = self.model.encode([text])
         return text_embedded[0]
     
+
+    def search(self, query, limit) -> list:
+        embedding_path = "cache/movie_embeddings.npy"
+
+        if os.path.exists(embedding_path) == False:
+            raise ValueError("No embeddings loaded. Call `load_or_create_embeddings` first.")
+    
+        query_embedded = self.generate_embedding(query)
+        cosine_similarity_lsit = []
+        for i in range(0, len(self.embeddings)):
+            similarity = cosine_similarity(query_embedded, self.embeddings[i])
+            cosine_similarity_lsit.append((similarity, self.documents[i]))
+
+        cosine_similarity_lsit.sort(key=lambda x : x[0], reverse=True)
+        
+        search_list = []
+        for i in range(0, limit):
+            score, doc = cosine_similarity_lsit[i]
+            search_list.append({
+                "score": score,
+                "title": doc["title"],
+                "description": doc["description"],
+            })
+
+        return search_list
+
 
 def embed_text(text):
     smt_search = SemanticSearch()
