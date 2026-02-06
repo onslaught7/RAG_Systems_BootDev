@@ -21,6 +21,10 @@ def main():
     search_parser = subparsers.add_parser("search", help="Search for movie using query")
     search_parser.add_argument("query", type=str, help="The name or context of the movie to be searched.")
     search_parser.add_argument("--limit", type=int, default=5, help="Return top limit results in descending order")
+
+    search_parser = subparsers.add_parser("chunk", help="Break text to a specific number of chunks.")
+    search_parser.add_argument("long_query", type=str, help="The input text to perform chunking on.")
+    search_parser.add_argument("--chunk-size", type=int, default=200, help="The size of each chunk.")
     
     args = parser.parse_args()
 
@@ -45,6 +49,18 @@ def main():
             for index, item in enumerate(result, start=1):
                 print(f"{index}. {item['title']} (score: {item['score']:.4f})")
                 print(f"{item['description']}\n")
+        case "chunk":
+            words = args.long_query.split()
+            chunk_length = args.chunk_size
+
+            print(f"Chunking {len(args.long_query)} characters")
+
+            for i in range(0, len(words), chunk_length):
+                chunk_num = i // chunk_length + 1
+
+                chunk_content = " ".join(words[i:chunk_length + i])
+
+                print(f"{chunk_num}. {chunk_content}")
         case _:
             parser.print_help()
 
