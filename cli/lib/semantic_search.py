@@ -48,8 +48,6 @@ def fixed_size_chunking(text: str, chunk_length: int = 200) -> list:
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_length):
-        chunk_num = i // chunk_length + 1
-
         chunk_content = " ".join(words[i:chunk_length + i])
         chunks.append(chunk_content)
 
