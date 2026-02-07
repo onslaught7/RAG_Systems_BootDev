@@ -58,7 +58,7 @@ def main():
                 print(f"{index}. {item['title']} (score: {item['score']:.4f})")
                 print(f"{item['description']}\n")
         case "chunk":
-            chunk_text(args.long_query, args.chunk_size)
+            chunk_text(args.long_query, args.chunk_size, args.overlap)
         case _:
             parser.print_help()
 

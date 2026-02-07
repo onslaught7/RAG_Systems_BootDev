@@ -44,18 +44,21 @@ def cosine_similarity(vec1, vec2) -> float:
     return dot_product / (norm1 * norm2)
 
 
-def fixed_size_chunking(text: str, chunk_length: int = 200) -> list:    
+def fixed_size_chunking(text: str, chunk_length: int = 200, overlap: int = 0) -> list:    
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_length):
-        chunk_content = " ".join(words[i:chunk_length + i])
+        if i == 0:
+            chunk_content = " ".join(words[i:chunk_length + i])
+        else:
+            chunk_content = " ".join(words[i - overlap: chunk_length + i - overlap])
         chunks.append(chunk_content)
 
     return chunks
 
 
-def chunk_text(text: str, chunk_size: int):
-    chunks = fixed_size_chunking(text, chunk_size)
+def chunk_text(text: str, chunk_size: int, overlap: int):
+    chunks = fixed_size_chunking(text, chunk_size, overlap)
     print(f"Chunking {len(text)} characters")
     for i, chunk in enumerate(chunks):
         print(f"{i + 1}. {chunk}")    
