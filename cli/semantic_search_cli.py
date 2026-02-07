@@ -1,6 +1,13 @@
 import json
 import argparse
-from lib.semantic_search import verify_model, embed_text, verify_embeddings, embed_query_text, SemanticSearch
+from lib.semantic_search import (
+    verify_model, 
+    embed_text, 
+    verify_embeddings, 
+    embed_query_text,
+    chunk_text,
+    SemanticSearch
+)
 
 
 def main():
@@ -25,7 +32,8 @@ def main():
     search_parser = subparsers.add_parser("chunk", help="Break text to a specific number of chunks.")
     search_parser.add_argument("long_query", type=str, help="The input text to perform chunking on.")
     search_parser.add_argument("--chunk-size", type=int, default=200, help="The size of each chunk.")
-    
+    search_parser.add_argument("--overlap", type=int, help="The overlap size of the chunk.")
+
     args = parser.parse_args()
 
 
@@ -50,17 +58,7 @@ def main():
                 print(f"{index}. {item['title']} (score: {item['score']:.4f})")
                 print(f"{item['description']}\n")
         case "chunk":
-            words = args.long_query.split()
-            chunk_length = args.chunk_size
-
-            print(f"Chunking {len(args.long_query)} characters")
-
-            for i in range(0, len(words), chunk_length):
-                chunk_num = i // chunk_length + 1
-
-                chunk_content = " ".join(words[i:chunk_length + i])
-
-                print(f"{chunk_num}. {chunk_content}")
+            chunk_text(args.long_query, args.chunk_size)
         case _:
             parser.print_help()
 

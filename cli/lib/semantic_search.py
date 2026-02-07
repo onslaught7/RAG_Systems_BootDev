@@ -44,6 +44,25 @@ def cosine_similarity(vec1, vec2) -> float:
     return dot_product / (norm1 * norm2)
 
 
+def fixed_size_chunking(text: str, chunk_length: int = 200) -> list:    
+    words = text.split()
+    chunks = []
+    for i in range(0, len(words), chunk_length):
+        chunk_num = i // chunk_length + 1
+
+        chunk_content = " ".join(words[i:chunk_length + i])
+        chunks.append(chunk_content)
+
+    return chunks
+
+
+def chunk_text(text: str, chunk_size: int):
+    chunks = fixed_size_chunking(text, chunk_size)
+    print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks):
+        print(f"{i + 1}. {chunk}")    
+
+
 class SemanticSearch:
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
