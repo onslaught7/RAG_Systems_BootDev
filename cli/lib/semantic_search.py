@@ -64,6 +64,10 @@ def chunk_text(text: str, chunk_size: int, overlap: int):
         print(f"{i + 1}. {chunk}")    
 
 
+def semantic_chunk_text(text: str, chunk_size: int, overlap: int):
+    pass    
+
+
 class SemanticSearch:
     def __init__(self):
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
