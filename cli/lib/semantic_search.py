@@ -2,6 +2,7 @@ from sentence_transformers import SentenceTransformer
 import numpy as np
 import json
 import os
+import re
 
 
 def verify_model():
@@ -46,13 +47,13 @@ def cosine_similarity(vec1, vec2) -> float:
 
 def fixed_size_chunking(text: str, chunk_length: int = 200, overlap: int = 0) -> list:    
     words = text.split()
+
+    step = chunk_length - overlap
     chunks = []
-    for i in range(0, len(words), chunk_length):
-        if i == 0:
-            chunk_content = " ".join(words[i:chunk_length + i])
-        else:
-            chunk_content = " ".join(words[i - overlap: chunk_length + i - overlap])
-        chunks.append(chunk_content)
+
+    for i in range(0, len(words), step):
+        chunk = words[i:i + chunk_length]
+        chunks.append(" ".join(chunk))
 
     return chunks
 
@@ -64,8 +65,32 @@ def chunk_text(text: str, chunk_size: int, overlap: int):
         print(f"{i + 1}. {chunk}")    
 
 
-def semantic_chunk_text(text: str, chunk_size: int, overlap: int):
-    pass    
+def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0):
+    sentences = _split_into_sentences(text)
+    
+    chunks = []
+    step = chunk_size - overlap
+
+    for i in range(0, len(sentences), step):
+        chunk_content = sentences[i:i + chunk_size]
+
+        chunks.append(chunk_content)
+
+        if i + chunk_size >= len(sentences):
+            break
+
+    print(f"Semantically chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks):
+        chunk_text = " ".join(chunk)
+        print(f"{i + 1}. {chunk_text}")
+
+
+def _split_into_sentences(text: str) -> list:
+    pattern = r"(?<=[.!?])\s+"
+
+    sentences = re.split(pattern, text)
+
+    return [s for s in sentences if s.strip()]  
 
 
 class SemanticSearch:
