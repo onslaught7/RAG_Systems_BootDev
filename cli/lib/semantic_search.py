@@ -65,7 +65,7 @@ def chunk_text(text: str, chunk_size: int, overlap: int):
         print(f"{i + 1}. {chunk}")    
 
 
-def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0):
+def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0) -> list:
     sentences = _split_into_sentences(text)
     
     chunks = []
@@ -84,6 +84,8 @@ def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0):
         chunk_text = " ".join(chunk)
         print(f"{i + 1}. {chunk_text}")
 
+    return [" ".join(chunk) for chunk in chunks]
+
 
 def _split_into_sentences(text: str) -> list:
     pattern = r"(?<=[.!?])\s+"
@@ -94,8 +96,8 @@ def _split_into_sentences(text: str) -> list:
 
 
 class SemanticSearch:
-    def __init__(self):
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+    def __init__(self, model_name = "all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
         self.embeddings = None
         self.documents = None
         self.document_map = {}
@@ -170,6 +172,71 @@ class SemanticSearch:
 
         return search_list
 
+
+class ChunkedSemanticSearch(SemanticSearch):
+    def __init__(self, model_name = "all-MiniLM-L6-v2") -> None:
+        super().__init__(model_name)
+        self.chunk_embeddings = None
+        self.chunk_metadata = None
+
+    # Write a new build_chunk_embeddings(self, documents) method on the ChunkedSemanticSearch class. It's similar to build_embeddings from the SemanticSearch class, 
+    # but it handles chunking:
+        # Populate self.documents and self.document_map from the input documents (same as before).
+        # Create an empty list of strings to hold all the chunks
+        # Create an empty list of dictionaries to hold metadata about each chunk
+        # For each document:
+            # If the description text is empty, skip it.
+            # Use your semantic chunking function to split the description text into 4-sentence chunks with 1-sentence overlap.
+            # Add each chunk to the "all chunks" list.
+            # For each chunk, add a dictionary to the "chunk metadata" list with the following keys:
+            # movie_idx: The index of the document in self.documents
+            # chunk_idx: The index of the chunk within the document
+            # total_chunks: The total number of chunks in the document
+        # Use the model to .encode() the entire list of all chunks, and save the results into the self.chunk_embeddings attribute.
+        # Save the chunk metadata into the self.chunk_metadata attribute.
+        # Use np.save to save the embeddings to a cache/chunk_embeddings.npy file.
+        # Save the metadata as a JSON file in cache/chunk_metadata.json in this format:
+        # json.dump({"chunks": chunk_metadata, "total_chunks": len(all_chunks)}, f, indent=2)
+
+        # Return the chunk embeddings list.
+
+    def build_chunk_embeddings(self, documents) -> list:
+        self.documents = documents
+        self.chunk_metadata = []
+        all_chunks = []
+
+        for i, document in enumerate(documents):
+            if document["description"] == "":
+                continue
+
+            self.document_map[document["id"]] = document
+
+            chunked_description = semantic_chunk_text(document["description"], 4, 1)
+            for j, chunk in enumerate(chunked_description):
+                all_chunks.append(chunk)
+                chunk_metadata = {
+                    "movie_idx": i,
+                    "chunk_idx": j,
+                    "total_chunks": len(chunked_description)
+                }
+                self.chunk_metadata.append(chunk_metadata)
+
+        self.chunk_embeddings = self.model.encode(all_chunks)
+
+        os.makedirs("cache", exist_ok=True)
+        np.save("cache/chunk_embeddings.npy", self.chunk_embeddings)   
+
+        with open("cache/chunk_metadata.json", "w") as f:
+            json.dump({
+                    "chunks": self.chunk_metadata,
+                    "total_chunks": len(all_chunks)
+                },
+                f,
+                indent=2                
+            )
+
+        return self.chunk_embeddings
+            
 
 def embed_text(text):
     smt_search = SemanticSearch()
