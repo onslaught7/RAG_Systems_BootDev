@@ -79,10 +79,10 @@ def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0) -> lis
         if i + chunk_size >= len(sentences):
             break
 
-    print(f"Semantically chunking {len(text)} characters")
-    for i, chunk in enumerate(chunks):
-        chunk_text = " ".join(chunk)
-        print(f"{i + 1}. {chunk_text}")
+    # print(f"Semantically chunking {len(text)} characters")
+    # for i, chunk in enumerate(chunks):
+    #     chunk_text = " ".join(chunk)
+    #     print(f"{i + 1}. {chunk_text}")
 
     return [" ".join(chunk) for chunk in chunks]
 
@@ -236,6 +236,53 @@ class ChunkedSemanticSearch(SemanticSearch):
         else:
             return self.build_chunk_embeddings(documents)
 
+
+    def search_chunks(self, query: str, limit: int = 10) -> list:
+        embedded_query = self.generate_embedding(query)
+        chunk_score = []
+
+        for i in range(len(self.chunk_embeddings)):
+            similarity = cosine_similarity(embedded_query, self.chunk_embeddings[i])
+            metadata = self.chunk_metadata[i]
+
+            chunk_score.append({
+                "chunk_idx": metadata["chunk_idx"],
+                "movie_idx": metadata["movie_idx"],
+                "score": similarity
+            })
+        
+        movie_score_dict = {}
+
+        for chunk in chunk_score:
+            movie_idx = chunk["movie_idx"]
+            score = chunk["score"]
+
+            if movie_idx not in movie_score_dict or score > movie_score_dict[movie_idx]:
+                movie_score_dict["movie_idx"] = chunk["score"]
+
+        sorted_movies = sorted(
+            movie_score_dict.items(), 
+            key=lambda x : x[1], 
+            reverse=True
+        )
+
+        top_movies = sorted_movies[:limit]
+
+        results = []
+
+        for movie_idx, score in top_movies:
+
+            doc = self.documents[movie_idx]
+
+            results.append({
+                "id": doc["id"],
+                "title": doc["title"],
+                "document": doc["description"][:100],
+                "score": round(score, 4),
+                "metadata": {}
+            })
+
+        return results
             
 
 def embed_text(text):
