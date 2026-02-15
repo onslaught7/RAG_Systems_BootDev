@@ -79,20 +79,25 @@ def semantic_chunk_text(text: str, chunk_size: int = 4, overlap: int = 0) -> lis
         if i + chunk_size >= len(sentences):
             break
 
-    # print(f"Semantically chunking {len(text)} characters")
-    # for i, chunk in enumerate(chunks):
-    #     chunk_text = " ".join(chunk)
-    #     print(f"{i + 1}. {chunk_text}")
+    print(f"Semantically chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks):
+        chunk_text = " ".join(chunk)
+        print(f"{i + 1}. {chunk_text}")
 
     return [" ".join(chunk) for chunk in chunks]
 
 
 def _split_into_sentences(text: str) -> list:
+    if not text.strip():
+        return []
+    
     pattern = r"(?<=[.!?])\s+"
+    sentences = re.split(pattern, text.strip())
 
-    sentences = re.split(pattern, text)
+    if len(sentences) == 1 and not text.strip().endswith((".", "!", "?")):
+        return [text.strip()]        
 
-    return [s for s in sentences if s.strip()]  
+    return [s for s in sentences if s.strip()] 
 
 
 class SemanticSearch:
@@ -262,7 +267,7 @@ class ChunkedSemanticSearch(SemanticSearch):
 
         sorted_movies = sorted(
             movie_score_dict.items(), 
-            key=lambda x : x[1], 
+            key=lambda x : x[1],
             reverse=True
         )
 
