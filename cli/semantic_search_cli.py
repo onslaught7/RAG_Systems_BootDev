@@ -43,9 +43,17 @@ def main():
 
     search_parser = subparsers.add_parser("embed_chunks", help="Load the movie documents and build the chunk embeddings")
 
+    search_parser = subparsers.add_parser("search_chunked", help="Search for matches using query")
+    search_parser.add_argument("long_query", type=str, help="Query to search for.")
+    search_parser.add_argument("--limit", type=int, default=5, help="Return the top matches. The number of top matches is determined by the limit")
+
     args = parser.parse_args()
 
     data_dir = "data/movies.json"
+    def load_movies(path):
+        with open(path, "r") as f:
+            return json.load(f)["movies"]
+
 
     match args.command:
         case "verify":
@@ -73,13 +81,22 @@ def main():
             semantic_chunk_text(args.long_query, args.max_chunk_size, args.overlap)
         case "embed_chunks":
             chunked_smn = ChunkedSemanticSearch()
-            with open(data_dir, "r") as f:
-                data = json.load(f)
-                documents = data["movies"]
+            documents = load_movies(data_dir)
 
             embeddings = chunked_smn.load_or_create_chunk_embeddings(documents)
 
             print(f"Generated {len(embeddings)} chunked embeddings")
+        case "search_chunked":
+            chunked_smn = ChunkedSemanticSearch()
+            documents = load_movies(data_dir)
+
+            embeddings = chunked_smn.load_or_create_chunk_embeddings(documents)
+
+            results = chunked_smn.search_chunks(args.long_query, args.limit)
+
+            for i, result in enumerate(results, start=1):
+                print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
+                print(f"   {result['document']}...")
         case _:
             parser.print_help()
 
