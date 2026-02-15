@@ -215,14 +215,7 @@ class ChunkedSemanticSearch(SemanticSearch):
             )
 
         return self.chunk_embeddings
-    
-    # Write a new load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray method on the ChunkedSemanticSearch class:
-    #     Populate self.documents and self.document_map from the input documents (same as before).
-    #     If the cache/chunk_embeddings.npy and cache/chunk_metadata.json files exist:
-    #         Load embeddings into self.chunk_embeddings
-    #         Load metadata JSON and extract chunks into self.chunk_metadata
-    #         Return self.chunk_embeddings
-    #     Otherwise, return the result of rebuilding the chunk embeddings with build_chunk_embeddings.
+
 
     def load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
         self.documents = documents
@@ -233,9 +226,9 @@ class ChunkedSemanticSearch(SemanticSearch):
         metadata_path = "cache/chunk_metadata.json"
 
         if os.path.exists("cache/chunk_metadata.json") and os.path.exists("cache/chunk_embeddings.npy"):
-            self.chunk_embeddings = np.load("cache/chunk_embeddings.npy")
+            self.chunk_embeddings = np.load(embedding_path)
 
-            with open("cache/chunk_metadata.json", "r") as f:
+            with open(metadata_path, "r") as f:
                 metadata_json = json.load(f)
                 self.chunk_metadata = metadata_json["chunks"]
 

@@ -7,7 +7,8 @@ from lib.semantic_search import (
     embed_query_text,
     chunk_text,
     semantic_chunk_text,
-    SemanticSearch
+    SemanticSearch,
+    ChunkedSemanticSearch
 )
 
 
@@ -40,8 +41,11 @@ def main():
     search_parser.add_argument("--max-chunk-size", type=int, default=4, help="The max size of each chunk, while preserving the meaning.")
     search_parser.add_argument("--overlap", type=int, default=0, help="The part of the chunk context to overlap onto the next.")
 
+    search_parser = subparsers.add_parser("embed_chunks", help="Load the movie documents and build the chunk embeddings")
+
     args = parser.parse_args()
 
+    data_dir = "data/movies.json"
 
     match args.command:
         case "verify":
@@ -54,7 +58,7 @@ def main():
             embed_query_text(args.query)
         case "search":
             smn = SemanticSearch()
-            with open("data/movies.json", "r") as f:
+            with open(data_dir, "r") as f:
                 data = json.load(f)
                 documents = data["movies"]
                 smn.load_or_create_embeddings(documents)
@@ -67,6 +71,15 @@ def main():
             chunk_text(args.long_query, args.chunk_size, args.overlap)
         case "semantic_chunk":
             semantic_chunk_text(args.long_query, args.max_chunk_size, args.overlap)
+        case "embed_chunks":
+            chunked_smn = ChunkedSemanticSearch()
+            with open(data_dir, "r") as f:
+                data = json.load(f)
+                documents = data["movies"]
+
+            embeddings = chunked_smn.load_or_create_chunk_embeddings(documents)
+
+            print(f"Generated {len(embeddings)} chunked embeddings")
         case _:
             parser.print_help()
 
