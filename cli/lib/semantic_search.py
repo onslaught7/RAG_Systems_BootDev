@@ -179,28 +179,7 @@ class ChunkedSemanticSearch(SemanticSearch):
         self.chunk_embeddings = None
         self.chunk_metadata = None
 
-    # Write a new build_chunk_embeddings(self, documents) method on the ChunkedSemanticSearch class. It's similar to build_embeddings from the SemanticSearch class, 
-    # but it handles chunking:
-        # Populate self.documents and self.document_map from the input documents (same as before).
-        # Create an empty list of strings to hold all the chunks
-        # Create an empty list of dictionaries to hold metadata about each chunk
-        # For each document:
-            # If the description text is empty, skip it.
-            # Use your semantic chunking function to split the description text into 4-sentence chunks with 1-sentence overlap.
-            # Add each chunk to the "all chunks" list.
-            # For each chunk, add a dictionary to the "chunk metadata" list with the following keys:
-            # movie_idx: The index of the document in self.documents
-            # chunk_idx: The index of the chunk within the document
-            # total_chunks: The total number of chunks in the document
-        # Use the model to .encode() the entire list of all chunks, and save the results into the self.chunk_embeddings attribute.
-        # Save the chunk metadata into the self.chunk_metadata attribute.
-        # Use np.save to save the embeddings to a cache/chunk_embeddings.npy file.
-        # Save the metadata as a JSON file in cache/chunk_metadata.json in this format:
-        # json.dump({"chunks": chunk_metadata, "total_chunks": len(all_chunks)}, f, indent=2)
-
-        # Return the chunk embeddings list.
-
-    def build_chunk_embeddings(self, documents) -> list:
+    def build_chunk_embeddings(self, documents: list[dict]) -> list:
         self.documents = documents
         self.chunk_metadata = []
         all_chunks = []
@@ -236,6 +215,34 @@ class ChunkedSemanticSearch(SemanticSearch):
             )
 
         return self.chunk_embeddings
+    
+    # Write a new load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray method on the ChunkedSemanticSearch class:
+    #     Populate self.documents and self.document_map from the input documents (same as before).
+    #     If the cache/chunk_embeddings.npy and cache/chunk_metadata.json files exist:
+    #         Load embeddings into self.chunk_embeddings
+    #         Load metadata JSON and extract chunks into self.chunk_metadata
+    #         Return self.chunk_embeddings
+    #     Otherwise, return the result of rebuilding the chunk embeddings with build_chunk_embeddings.
+
+    def load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
+        self.documents = documents
+        for document in documents:
+            self.document_map[document["id"]] = document
+
+        embedding_path = "cache/chunk_embeddings.npy"
+        metadata_path = "cache/chunk_metadata.json"
+
+        if os.path.exists("cache/chunk_metadata.json") and os.path.exists("cache/chunk_embeddings.npy"):
+            self.chunk_embeddings = np.load("cache/chunk_embeddings.npy")
+
+            with open("cache/chunk_metadata.json", "r") as f:
+                metadata_json = json.load(f)
+                self.chunk_metadata = metadata_json["chunks"]
+
+            return self.chunk_embeddings
+        else:
+            return self.build_chunk_embeddings(documents)
+
             
 
 def embed_text(text):
