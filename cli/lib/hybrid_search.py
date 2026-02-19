@@ -2,7 +2,7 @@ import os
 
 # local import from the same package
 from .semantic_search import ChunkedSemanticSearch
-from src.inverted_index import InvertedIndex
+from .inverted_index import InvertedIndex
 
 
 def min_max_normalization(scores: list[float]) -> None:

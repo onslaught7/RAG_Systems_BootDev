@@ -6,7 +6,7 @@ from nltk import HeldoutProbDist
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.text_processing import _normalize_text
-from src.inverted_index import InvertedIndex
+from lib.inverted_index import InvertedIndex
 from constants.constants import BM25_K1, BM25_B
 import argparse # To parse command-line arguments
 from typing import List
