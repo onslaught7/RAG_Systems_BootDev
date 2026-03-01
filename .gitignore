@@ -16,3 +16,6 @@ cache/
 # debugging files
 .ruff_cache
 .mypy_cache
+
+# environment files
+.env
