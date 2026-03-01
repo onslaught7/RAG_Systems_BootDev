@@ -89,10 +89,12 @@ class HybridSearch:
             results.append({
                 "title": doc.get("title", ""),
                 "document": doc.get("description", "")[:150],
-                "bm25_score": ranks["bm25_rank"],
-                "semantic_score": ranks["semantic_rank"],
-                "hybrid_score": ranks["rrf_score"]
+                "bm25_rank": ranks["bm25_rank"],
+                "semantic_rank": ranks["semantic_rank"],
+                "rrf_score": ranks["rrf_score"]
             })
+
+        return results
     
     def weighted_search(self, query: str, alpha: float, limit: int = 5):
         bm25_results = self._bm25_search(query, limit * 500)
