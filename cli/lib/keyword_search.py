@@ -269,6 +269,8 @@ class InvertedIndex:
             reverse=True
         )
 
-        for rank, (doc_id, score) in enumerate(ranked_docs[:limit], start=1):
-            title = self.docmap.get(doc_id, {}).get("title", "")
-            print(f"{rank}. ({doc_id}) {title} - Score: {score:.2f}")
+        # for rank, (doc_id, score) in enumerate(ranked_docs[:limit], start=1):
+        #     title = self.docmap.get(doc_id, {}).get("title", "")
+        #     print(f"{rank}. ({doc_id}) {title} - Score: {score:.2f}")
+
+        return ranked_docs[0:limit]

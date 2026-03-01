@@ -5,8 +5,8 @@ from nltk import HeldoutProbDist
 # Add parent directory to path so we can import from src/
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from lib.inverted_index import _normalize_text
-from lib.inverted_index import InvertedIndex
+from lib.keyword_search import _normalize_text
+from lib.keyword_search import InvertedIndex
 from constants.constants import BM25_K1, BM25_B
 import argparse # To parse command-line arguments
 from typing import List

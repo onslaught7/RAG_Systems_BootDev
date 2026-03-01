@@ -287,7 +287,7 @@ class ChunkedSemanticSearch(SemanticSearch):
                 "metadata": {}
             })
 
-        return results
+        return results[0:limit]
             
 
 def embed_text(text):
