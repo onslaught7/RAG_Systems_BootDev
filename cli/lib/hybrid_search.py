@@ -2,6 +2,7 @@ import os
 
 from .semantic_search import ChunkedSemanticSearch
 from .keyword_search import InvertedIndex
+from enhance_with_llm import Gemini
 
 
 class HybridSearch:
@@ -41,16 +42,6 @@ class HybridSearch:
         return normalized_list
 
     def rrf_search(self, query, k, limit=10):
-        # Implement the missing rrf_search method in your HybridSearch class. It should:
-        #     Call the _bm25_search method to get BM25 results. Again, get 500 times the actual limit.
-        #     Call the search method of ChunkedSemanticSearch to get semantic chunk results for the same query. Again, get 500 times the actual limit.
-        #     Combine the results from both searches using Reciprocal Rank Fusion as follows:
-            #     Create a dictionary mapping document IDs to the documents themselves and their BM25 and semantic ranks (not scores).
-            #     For each document, calculate the RRF score using the rrf_score function and add that score to each document as well. 
-            #     If a document shows up in both searches, sum its RRF scores.
-            #     Return the results sorted by the RRF score in descending order.
-        # Hook up your rrf-search command to your HybridSearch class's rrf_search method. 
-        # It should call the method and return the results, truncated to the specified limit, in this format:
         bm25_results = self._bm25_search(query, limit * 500)
         semantic_results = self._semantic_search(query, limit * 500)
 

@@ -1,6 +1,7 @@
 import json
 import argparse
 from lib.hybrid_search import HybridSearch
+from enhance_with_llm import Gemini
 
 
 def main() -> None:
@@ -20,14 +21,10 @@ def main() -> None:
     search_parser.add_argument("query", type=str, help="Search query")
     search_parser.add_argument("-k", type=int, default=60, help="Configurabe parameter to signify weight given to ranks.")
     search_parser.add_argument("--limit", type=int, default=5, help="Then number of response for the query input.")
+    search_parser.add_argument("--enhance", type=str, choices=["spell"], help="Query enhancement method")
 
     args = parser.parse_args()
-
-    # Add a new rrf-search command to your hybrid search CLI script.
-    #     It should accept a required positional query parameter.
-    #     It should accept an optional -k parameter (default to 60).
-    #     It should accept an optional --limit parameter (default to 5).
-    
+  
     def load_movies():
         with open("./data/movies.json", "r") as f:
             data = json.load(f)
@@ -60,10 +57,17 @@ def main() -> None:
             documents = load_movies()
             hbd = HybridSearch(documents)
 
+            query_to_use = args.query
+
+            if args.enhance:
+                enhanced_query = Gemini.enhance_query(args.query)
+                print(f"Enhanced query ({args.enhance}): '{args.query}' -> '{enhanced_query}'\n")
+                query_to_use = enhanced_query
+
             results = hbd.rrf_search(
-                args.query,
+                query_to_use,
                 args.k,
-                args.limit 
+                args.limit
             )
 
             for rank, result in enumerate(results, start=1):
