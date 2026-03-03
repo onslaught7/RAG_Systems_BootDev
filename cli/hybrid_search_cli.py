@@ -95,11 +95,15 @@ def main() -> None:
                     args.limit * 5
                 )
                 enhanced_results = Gemini.enhanced_score(query_to_use, results)
-                for rank, result in enumerate(enhanced_results, start=1):
+                print(f"Reranking top {args.limit} results using individual method...")
+                print(f"Reciprocal Rank Fusion Results for '{args.query}' (k={args.k}):")
+                print()
+
+                for rank, result in enumerate(enhanced_results[:args.limit], start=1):
                     print(f"{rank}. {result['title']}")
-                    print(f"   Rerank Score: {result['rerank_score']}/10")
-                    print(f"   RRF SCORE: {result['rrf_score']:.3f}")
-                    print(f"   BM25 Rank: {result['bm25_rank']:.3f}, Semantic Rank: {result['semantic_rank']:.3f}")
+                    print(f"   Rerank Score: {result['rerank_score']:.3f}/10")
+                    print(f"   RRF Score: {result['rrf_score']:.3f}")
+                    print(f"   BM25 Rank: {int(result['bm25_rank'])}, Semantic Rank: {int(result['semantic_rank'])}")
                     print(f"   {result['document']}")
                     print()
             else:

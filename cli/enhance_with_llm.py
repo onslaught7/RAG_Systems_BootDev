@@ -106,4 +106,4 @@ class Gemini:
             reverse=True
         )
 
-        return results[:len(results)/5]
+        return results
