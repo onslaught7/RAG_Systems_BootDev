@@ -47,14 +47,14 @@ class HybridSearch:
 
         doc_dict = {}
 
-        for i, (doc_id, _) in enumerate(bm25_results):
+        for i, (doc_id, _) in enumerate(bm25_results, start=1):
             doc_dict[doc_id] = {
                 "bm25_rank": i,
                 "semantic_rank": 0,
                 "rrf_score": self.rrf_score(i, k)
             }
 
-        for i, item in enumerate(semantic_results):
+        for i, item in enumerate(semantic_results, start=1):
             doc_id = item["id"]
 
             if doc_id not in doc_dict:
@@ -64,6 +64,7 @@ class HybridSearch:
                     "rrf_score": self.rrf_score(i, k)
                 }
             else:
+                doc_dict[doc_id]["semantic_rank"] = i
                 doc_dict[doc_id]["rrf_score"] += self.rrf_score(i, k)
 
         sorted_dict = sorted(
