@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from dotenv import load_dotenv
 from google import genai
 
@@ -69,41 +70,79 @@ class Gemini:
 
         return response.text.strip()
     
-    def enhanced_score(query: str, docs: list[dict]) -> dict:
-        for i, doc in enumerate(docs):
-            prompt = f"""Rate how well this movie matches the search query.
+    def enhanced_score(query: str, docs: list[dict], choice: str, limit: int, k: int) -> dict:
+        match choice:
+            case "individual":
+                print(f"Reranking top {limit} results using individual method...")
+                print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):")
+                print()
 
-                        Query: "{query}"
-                        Movie: {doc.get("title", "")} - {doc.get("document", "")}
+                for i, doc in enumerate(docs):
+                    prompt = f"""Rate how well this movie matches the search query.
 
-                        Consider:
-                        - Direct relevance to query
-                        - User intent (what they're looking for)
-                        - Content appropriateness
+                    Query: "{query}"
+                    Movie: {doc.get("title", "")} - {doc.get("document", "")}
 
-                        Scoring rules:
-                        - 0 = completely unrelated
-                        - 10 = perfect match
-                        - Use integers or decimals (e.g., 7 or 7.5)
-                        - Do NOT explain your reasoning
-                        - Do NOT include any words
-                        - Output ONLY the numeric score
-                        - Give me ONLY the number in your response, no other text or explanation.
+                    Consider:
+                    - Direct relevance to query
+                    - User intent (what they're looking for)
+                    - Content appropriateness
 
-                        Score:"""
-            score = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt
-            )
+                    Scoring rules:
+                    - 0 = completely unrelated
+                    - 10 = perfect match
+                    - Use integers or decimals (e.g., 7 or 7.5)
+                    - Do NOT explain your reasoning
+                    - Do NOT include any words
+                    - Output ONLY the numeric score
+                    - Give me ONLY the number in your response, no other text or explanation.
 
-            docs[i]["rerank_score"] = float(score.text.strip())
+                    Score:"""
+                    score = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=prompt
+                    )
 
-            time.sleep(13)
+                    docs[i]["rerank_score"] = float(score.text.strip())
 
-        results = sorted(
-            docs,
-            key=lambda x: x["rerank_score"],
-            reverse=True
-        )
+                    time.sleep(13)
 
-        return results
+                results = sorted(
+                    docs,
+                    key=lambda x: x["rerank_score"],
+                    reverse=True
+                )
+
+                return results
+            case "batch":
+                print(f"Reranking top {limit} results using batch method...")
+                print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):")
+                print()
+
+                prompt = f"""Rank these movies by relevance to the search query.
+
+                Query: "{query}"
+
+                Movies:
+                {docs}
+
+                Return ONLY the IDs in order of relevance (best match first). Return a valid JSON list, nothing else. For example:
+
+                [75, 12, 34, 2, 1]
+                """
+                score_list = client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=prompt
+                )
+
+                ranked_ids = json.loads(score_list.text.strip())
+                doc_lookup = {doc["id"]: doc for doc in docs}
+                results = []
+
+                for rank, doc_id in enumerate(ranked_ids, start=1):
+                    if doc_id in doc_lookup:
+                        doc = doc_lookup[doc_id]
+                        doc["rerank_rank"] = rank
+                        results.append(doc)
+
+                return results
