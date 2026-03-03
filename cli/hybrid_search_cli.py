@@ -22,7 +22,8 @@ def main() -> None:
     search_parser.add_argument("-k", type=int, default=60, help="Configurabe parameter to signify weight given to ranks.")
     search_parser.add_argument("--limit", type=int, default=5, help="Then number of response for the query input.")
     search_parser.add_argument("--enhance", type=str, choices=["spell", "rewrite", "expand"], help="Query enhancement method")
-    search_parser.add_argument("--rerank-method", type=str, choices=["individual", "batch"], default="", help="Add reraking to improve search results for the query.")
+    search_parser.add_argument("--rerank-method", type=str, choices=["individual", "batch", "cross_encoder"], default="", help="Add reraking to improve search results for the query.")
+
 
     args = parser.parse_args()
   
@@ -84,6 +85,8 @@ def main() -> None:
                         print(f"   Rerank Score: {result['rerank_score']:.3f}/10")
                     elif args.rerank_method == "batch":
                         print(f"   Rerank Rank: {result['rerank_rank']}")
+                    elif args.rerank_method == "cross_encoder":
+                        print(f"   Cross Encoder Score: {result['cross_encoder_score']:.3f}")
                     print(f"   RRF Score: {result['rrf_score']:.3f}")
                     print(f"   BM25 Rank: {int(result['bm25_rank'])}, Semantic Rank: {int(result['semantic_rank'])}")
                     print(f"   {result['document']}")

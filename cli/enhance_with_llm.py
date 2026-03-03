@@ -3,6 +3,7 @@ import time
 import json
 from dotenv import load_dotenv
 from google import genai
+from sentence_transformers import CrossEncoder
 
 
 load_dotenv()
@@ -158,5 +159,33 @@ class Gemini:
                         doc = doc_lookup[doc_id]
                         doc["rerank_rank"] = rank
                         results.append(doc)
+
+                return results
+            case "cross_encoder":
+                print(f"Reranking top {limit} results using cross_encoder method...")
+                print(f"Reciprocal Rank Fusion Results for '{query}' (k={k}):")
+                print()
+
+                pairs = []
+                for doc in docs:
+                    pairs.append([query, f"{doc.get('title', '')} - {doc.get('document', '')}"])
+                
+                # Loading the model everytime someone hits the cross_encoder is quite expensive
+                # and not the best practice
+                cross_encoder = CrossEncoder("cross-encoder/ms-marco-TinyBERT-L2-v2")
+                scores = cross_encoder.predict(pairs)
+
+                results = []
+
+                for i, score in enumerate(scores):
+                    doc = docs[i]
+                    doc["cross_encoder_score"] = score
+                    results.append(doc)
+
+                results = sorted(
+                    results,
+                    key=lambda x: x["cross_encoder_score"],
+                    reverse=True
+                )
 
                 return results
