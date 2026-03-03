@@ -135,7 +135,21 @@ class Gemini:
                     contents=prompt
                 )
 
-                ranked_ids = json.loads(score_list.text.strip())
+                raw_text = score_list.text.strip()
+
+                # Remove markdown code blocks if present
+                raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+
+                # Extract only the JSON list part
+                start = raw_text.find("[")
+                end = raw_text.rfind("]") + 1
+
+                if start == -1 or end == -1:
+                    raise ValueError(f"Invalid LLM JSON output:\n{raw_text}")
+
+                json_str = raw_text[start:end]
+
+                ranked_ids = json.loads(json_str)
                 doc_lookup = {doc["id"]: doc for doc in docs}
                 results = []
 

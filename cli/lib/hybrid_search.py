@@ -79,6 +79,7 @@ class HybridSearch:
             doc = self.idx.docmap.get(doc_id, {})
 
             results.append({
+                "id": doc_id,
                 "title": doc.get("title", ""),
                 "document": doc.get("description", "")[:150],
                 "bm25_rank": ranks["bm25_rank"],
@@ -127,7 +128,6 @@ class HybridSearch:
                 alpha
             )
 
-        # Sort
         sorted_docs = sorted(
             doc_dict.items(),
             key=lambda x: x[1]["hybrid_score"],
@@ -140,6 +140,7 @@ class HybridSearch:
             doc = self.idx.docmap.get(doc_id, {})
 
             results.append({
+                "id": doc_id,
                 "title": doc.get("title", ""),
                 "document": doc.get("description", "")[:150],
                 "bm25_score": scores["bm25_score"],
